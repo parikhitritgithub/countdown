@@ -2,33 +2,34 @@
 
 import { useState, useEffect } from 'react';
 
+function getTodayKey(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `gate2027-mission-${year}-${month}-${day}`;
+}
+
 export default function DailyMission() {
   const [isChecked, setIsChecked] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    const getTodayKey = () => {
-      const today = new Date();
-      return `gate2027-mission-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    };
 
-    // Initial check
+    // Check localStorage for today's mission
     const todayKey = getTodayKey();
     const storedValue = localStorage.getItem(todayKey);
     if (storedValue === 'true') {
       setIsChecked(true);
     }
 
-    // Interval to check for midnight reset
+    // Check for midnight reset every 60 seconds
     const interval = setInterval(() => {
       const currentKey = getTodayKey();
       const currentStored = localStorage.getItem(currentKey);
       if (currentStored !== 'true') {
-         // It's a new day, or somehow it was un-checked in another tab
-         // We reset state if it's a new day
-         // If they hadn't checked it today, we should reflect that
-         setIsChecked(currentStored === 'true');
+        setIsChecked(false);
       }
     }, 60000);
 
@@ -38,10 +39,7 @@ export default function DailyMission() {
   const handleCheckboxChange = () => {
     const newValue = !isChecked;
     setIsChecked(newValue);
-    
-    const today = new Date();
-    const todayKey = `gate2027-mission-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    
+    const todayKey = getTodayKey();
     localStorage.setItem(todayKey, newValue.toString());
   };
 
@@ -50,30 +48,40 @@ export default function DailyMission() {
   }
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      <h2 className="text-xs tracking-[0.2em] text-zinc-500 uppercase">Today's Mission</h2>
-      <p className="text-zinc-300">Study. Practice. Revise. Repeat.</p>
-      
-      <label className="flex items-center gap-3 cursor-pointer group w-fit mt-2">
-        <div className={`w-5 h-5 flex items-center justify-center border-2 rounded transition-colors duration-200 ${
-          isChecked 
-            ? 'bg-zinc-300 border-zinc-300' 
-            : 'border-zinc-600 group-hover:border-zinc-400'
-        }`}>
+    <div className="w-full flex flex-col gap-4 pt-8 border-t border-zinc-800">
+      <h2 className="text-xs tracking-[0.2em] text-zinc-500 uppercase">
+        Today&apos;s Mission
+      </h2>
+      <p className="text-zinc-300 text-sm sm:text-base font-mono">
+        Study. Practice. Revise. Repeat.
+      </p>
+
+      <label className="flex items-center gap-3 cursor-pointer group w-fit mt-1">
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={isChecked}
+          onClick={handleCheckboxChange}
+          className={`w-5 h-5 flex items-center justify-center border-2 rounded transition-all duration-200 ${
+            isChecked
+              ? 'bg-zinc-300 border-zinc-300'
+              : 'border-zinc-600 group-hover:border-zinc-400'
+          }`}
+        >
           {isChecked && (
-            <svg 
-              className="w-3.5 h-3.5 text-zinc-900" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor" 
+            <svg
+              className="w-3 h-3 text-zinc-900"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
               strokeWidth={3}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
-        </div>
-        <span className="text-zinc-400 select-none group-hover:text-zinc-300 transition-colors">
-          I completed today's mission.
+        </button>
+        <span className="text-sm text-zinc-400 select-none group-hover:text-zinc-300 transition-colors">
+          I completed today&apos;s mission.
         </span>
       </label>
     </div>
